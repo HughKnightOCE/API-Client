@@ -3,11 +3,11 @@ Phase 3: Authentication Helpers, Mock Server, GraphQL Support
 """
 
 import json
-import jwt
 import base64
 import requests
 import hashlib
 import secrets
+from typing import List, Dict, Any, Optional
 from typing import Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta
 from urllib.parse import urlencode, parse_qs, urlparse

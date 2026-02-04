@@ -605,10 +605,11 @@
 
     <!-- Modals -->
     <!-- Request Modal -->
-    <div id="request-modal" class="modal">
-        <div class="modal-content">
+    <div id="request-modal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h2>Create Request</h2>
+                <button class="close-button" onclick="closeRequestModal()">×</button>
             </div>
             <div class="form-group">
                 <label>Name</label>
@@ -641,10 +642,11 @@
     </div>
 
     <!-- Chain Modal -->
-    <div id="chain-modal" class="modal">
-        <div class="modal-content">
+    <div id="chain-modal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h2>Create Chain</h2>
+                <button class="close-button" onclick="closeChainModal()">×</button>
             </div>
             <div class="form-group">
                 <label>Name</label>
@@ -659,10 +661,11 @@
     </div>
 
     <!-- Template Modal -->
-    <div id="template-modal" class="modal">
-        <div class="modal-content">
+    <div id="template-modal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h2>Create Template</h2>
+                <button class="close-button" onclick="closeTemplateModal()">×</button>
             </div>
             <div class="form-group">
                 <label>Name</label>
@@ -689,10 +692,11 @@
     </div>
 
     <!-- Auth Modal -->
-    <div id="auth-modal" class="modal">
-        <div class="modal-content">
+    <div id="auth-modal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h2>Create Auth Config</h2>
+                <button class="close-button" onclick="closeAuthModal()">×</button>
             </div>
             <div class="form-group">
                 <label>Name</label>
@@ -715,10 +719,11 @@
     </div>
 
     <!-- Mock Modal -->
-    <div id="mock-modal" class="modal">
-        <div class="modal-content">
+    <div id="mock-modal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h2>Create Mock Endpoint</h2>
+                <button class="close-button" onclick="closeMockModal()">×</button>
             </div>
             <div class="form-group">
                 <label>Name</label>
@@ -745,10 +750,11 @@
     </div>
 
     <!-- GraphQL Modal -->
-    <div id="graphql-modal" class="modal">
-        <div class="modal-content">
+    <div id="graphql-modal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h2>Create GraphQL Query</h2>
+                <button class="close-button" onclick="closeGraphQLModal()">×</button>
             </div>
             <div class="form-group">
                 <label>Name</label>
@@ -814,7 +820,7 @@
                     <td><span class="badge">${req.method}</span></td>
                     <td>${req.url}</td>
                     <td>
-                        <button class="secondary" style="font-size: 12px; padding: 6px 12px;">Run</button>
+                        <button class="secondary" style="font-size: 12px; padding: 6px 12px;" onclick="runRequest('${req.name}')">Run</button>
                         <button class="danger" style="font-size: 12px; padding: 6px 12px;" onclick="deleteRequest('${req.name}')">Delete</button>
                     </td>
                 </tr>
@@ -835,16 +841,21 @@
             };
 
             try {
-                await fetch(`${API_URL}/requests`, {
+                const response = await fetch(`${API_URL}/requests`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(request)
                 });
+                const data = await response.json();
+                if (!response.ok) {
+                    alert(`Error: ${data.detail || data.error || 'Unknown error'}`);
+                    return;
+                }
                 alert('Request saved!');
-                document.getElementById('request-modal').classList.remove('active');
+                closeRequestModal();
                 loadRequests();
             } catch (e) {
-                alert('Error: ' + e);
+                alert('Error: ' + e.message);
             }
         }
 
@@ -852,6 +863,21 @@
             if (confirm(`Delete request "${name}"?`)) {
                 await fetch(`${API_URL}/requests/${name}`, { method: 'DELETE' });
                 loadRequests();
+            }
+        }
+
+        async function runRequest(name) {
+            try {
+                const response = await fetch(`${API_URL}/requests/${name}/execute`, { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok) {
+                    alert(`Error: ${data.detail || data.error || 'Unknown error'}`);
+                    return;
+                }
+                const timeStr = data.time_taken ? data.time_taken.toFixed(2) : '0.00';
+                alert(`Request executed!\n\nStatus: ${data.status_code}\nTime: ${timeStr}ms\nSize: ${data.size} bytes\n\nResponse:\n${JSON.stringify(data.response, null, 2)}`);
+            } catch (e) {
+                alert('Error: ' + e.message);
             }
         }
 
@@ -866,8 +892,8 @@
                     <td>${chain.name}</td>
                     <td>${chain.requests}</td>
                     <td>
-                        <button class="secondary" style="font-size: 12px; padding: 6px 12px;">Execute</button>
-                        <button class="danger" style="font-size: 12px; padding: 6px 12px;">Delete</button>
+                        <button class="secondary" style="font-size: 12px; padding: 6px 12px;" onclick="executeChain('${chain.name}')">Execute</button>
+                        <button class="danger" style="font-size: 12px; padding: 6px 12px;" onclick="deleteChain('${chain.name}')">Delete</button>
                     </td>
                 </tr>
             `).join('');
@@ -875,6 +901,26 @@
 
         function showCreateChainModal() {
             document.getElementById('chain-modal').classList.add('active');
+        }
+
+        async function saveChain() {
+            const chain = {
+                name: document.getElementById('chain-name').value,
+                requests: JSON.parse(document.getElementById('chain-requests').value || '[]'),
+            };
+
+            try {
+                await fetch(`${API_URL}/chains`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(chain)
+                });
+                alert('Chain created!');
+                closeChainModal();
+                loadChains();
+            } catch (e) {
+                alert('Error: ' + e);
+            }
         }
 
         // Templates
@@ -889,8 +935,8 @@
                     <td>${template.category}</td>
                     <td><span class="badge">${template.method}</span></td>
                     <td>
-                        <button class="secondary" style="font-size: 12px; padding: 6px 12px;">Use</button>
-                        <button class="danger" style="font-size: 12px; padding: 6px 12px;">Delete</button>
+                        <button class="secondary" style="font-size: 12px; padding: 6px 12px;" onclick="useTemplate('${template.name}')">Use</button>
+                        <button class="danger" style="font-size: 12px; padding: 6px 12px;" onclick="deleteTemplate('${template.name}')">Delete</button>
                     </td>
                 </tr>
             `).join('');
@@ -898,6 +944,30 @@
 
         function showCreateTemplateModal() {
             document.getElementById('template-modal').classList.add('active');
+        }
+
+        async function saveTemplate() {
+            const template = {
+                name: document.getElementById('template-name').value,
+                category: document.getElementById('template-category').value,
+                method: document.getElementById('template-method').value,
+                url: document.getElementById('template-url').value,
+                headers: JSON.parse(document.getElementById('template-headers').value || '{}'),
+                body: document.getElementById('template-body').value,
+            };
+
+            try {
+                await fetch(`${API_URL}/templates`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(template)
+                });
+                alert('Template saved!');
+                closeTemplateModal();
+                loadTemplates();
+            } catch (e) {
+                alert('Error: ' + e);
+            }
         }
 
         // Metrics
@@ -928,7 +998,7 @@
                     <td>${auth.name}</td>
                     <td><span class="badge info">${auth.type}</span></td>
                     <td>
-                        <button class="danger" style="font-size: 12px; padding: 6px 12px;">Delete</button>
+                        <button class="danger" style="font-size: 12px; padding: 6px 12px;" onclick="deleteAuth('${auth.name}')">Delete</button>
                     </td>
                 </tr>
             `).join('');
@@ -936,6 +1006,27 @@
 
         function showCreateAuthModal() {
             document.getElementById('auth-modal').classList.add('active');
+        }
+
+        async function saveAuth() {
+            const auth = {
+                name: document.getElementById('auth-name').value,
+                type: document.getElementById('auth-type').value,
+                credentials: document.getElementById('auth-credentials').value,
+            };
+
+            try {
+                await fetch(`${API_URL}/auth`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(auth)
+                });
+                alert('Auth config saved!');
+                closeAuthModal();
+                loadAuthConfigs();
+            } catch (e) {
+                alert('Error: ' + e);
+            }
         }
 
         // Mocks
@@ -950,7 +1041,7 @@
                     <td>${mock.path}</td>
                     <td><span class="badge">${mock.method}</span></td>
                     <td>
-                        <button class="danger" style="font-size: 12px; padding: 6px 12px;">Delete</button>
+                        <button class="danger" style="font-size: 12px; padding: 6px 12px;" onclick="deleteMock('${mock.name}')">Delete</button>
                     </td>
                 </tr>
             `).join('');
@@ -958,6 +1049,28 @@
 
         function showCreateMockModal() {
             document.getElementById('mock-modal').classList.add('active');
+        }
+
+        async function saveMock() {
+            const mock = {
+                name: document.getElementById('mock-name').value,
+                path: document.getElementById('mock-path').value,
+                method: document.getElementById('mock-method').value,
+                response: JSON.parse(document.getElementById('mock-response').value || '{}'),
+            };
+
+            try {
+                await fetch(`${API_URL}/mocks`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(mock)
+                });
+                alert('Mock created!');
+                closeMockModal();
+                loadMocks();
+            } catch (e) {
+                alert('Error: ' + e);
+            }
         }
 
         // GraphQL
@@ -971,8 +1084,8 @@
                     <td>${q.name}</td>
                     <td>${q.endpoint}</td>
                     <td>
-                        <button class="secondary" style="font-size: 12px; padding: 6px 12px;">Execute</button>
-                        <button class="danger" style="font-size: 12px; padding: 6px 12px;">Delete</button>
+                        <button class="secondary" style="font-size: 12px; padding: 6px 12px;" onclick="executeGraphQL('${q.name}')">Execute</button>
+                        <button class="danger" style="font-size: 12px; padding: 6px 12px;" onclick="deleteGraphQL('${q.name}')">Delete</button>
                     </td>
                 </tr>
             `).join('');
@@ -980,6 +1093,209 @@
 
         function showCreateGraphQLModal() {
             document.getElementById('graphql-modal').classList.add('active');
+        }
+
+        async function saveGraphQL() {
+            const query = {
+                name: document.getElementById('graphql-name').value,
+                endpoint: document.getElementById('graphql-endpoint').value,
+                query: document.getElementById('graphql-query').value,
+                variables: JSON.parse(document.getElementById('graphql-variables').value || '{}'),
+            };
+
+            try {
+                await fetch(`${API_URL}/graphql`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(query)
+                });
+                alert('GraphQL query saved!');
+                closeGraphQLModal();
+                loadGraphQLQueries();
+            } catch (e) {
+                alert('Error: ' + e);
+            }
+        }
+
+        // Template functions
+        async function useTemplate(name) {
+            try {
+                const response = await fetch(`${API_URL}/templates/${name}`);
+                const data = await response.json();
+                if (!response.ok) {
+                    alert(`Error: ${data.detail || data.error || 'Unknown error'}`);
+                    return;
+                }
+                alert(`Applied template: ${name}\n\nMethod: ${data.method}\nURL: ${data.base_url || data.url || 'N/A'}\nHeaders: ${JSON.stringify(data.headers || {}, null, 2)}`);
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function deleteTemplate(name) {
+            if (confirm(`Delete template "${name}"?`)) {
+                await fetch(`${API_URL}/templates/${name}`, { method: 'DELETE' });
+                loadTemplates();
+            }
+        }
+
+        // Chain functions
+        async function executeChain(name) {
+            try {
+                const response = await fetch(`${API_URL}/chains/${name}/execute`, { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok) {
+                    alert(`Error: ${data.detail || data.error || 'Unknown error'}`);
+                    return;
+                }
+                const resultsSummary = data.results ? data.results.map(r => `${r.status_code} - ${(r.time_taken || 0).toFixed(2)}ms`).join('\n') : 'No results';
+                alert(`Chain executed: ${name}\n\nRequests: ${data.requests_executed}\nTotal Time: ${(data.total_time || 0).toFixed(2)}ms\n\nResults:\n${resultsSummary}`);
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function deleteChain(name) {
+            if (confirm(`Delete chain "${name}"?`)) {
+                await fetch(`${API_URL}/chains/${name}`, { method: 'DELETE' });
+                loadChains();
+            }
+        }
+
+        // Mock functions
+        async function deleteMock(name) {
+            if (confirm(`Delete mock "${name}"?`)) {
+                await fetch(`${API_URL}/mocks/${name}`, { method: 'DELETE' });
+                loadMocks();
+            }
+        }
+
+        async function startMockServer() {
+            try {
+                await fetch(`${API_URL}/mocks/server/start`, { method: 'POST' });
+                alert('Mock server started!');
+            } catch (e) {
+                alert('Error: ' + e);
+            }
+        }
+
+        async function stopMockServer() {
+            try {
+                await fetch(`${API_URL}/mocks/server/stop`, { method: 'POST' });
+                alert('Mock server stopped!');
+            } catch (e) {
+                alert('Error: ' + e);
+            }
+        }
+
+        // Auth functions
+        async function deleteAuth(name) {
+            if (confirm(`Delete auth config "${name}"?`)) {
+                await fetch(`${API_URL}/auth/${name}`, { method: 'DELETE' });
+                loadAuthConfigs();
+            }
+        }
+
+        // GraphQL functions
+        async function executeGraphQL(name) {
+            try {
+                const response = await fetch(`${API_URL}/graphql/${name}/execute`, { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok) {
+                    alert(`Error: ${data.detail || data.error || 'Unknown error'}`);
+                    return;
+                }
+                alert(`GraphQL executed: ${name}\n\nResponse:\n${JSON.stringify(data, null, 2)}`);
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function deleteGraphQL(name) {
+            if (confirm(`Delete GraphQL query "${name}"?`)) {
+                await fetch(`${API_URL}/graphql/${name}`, { method: 'DELETE' });
+                loadGraphQLQueries();
+            }
+        }
+
+        // Metrics functions
+        async function showMetricsStats() {
+            try {
+                const response = await fetch(`${API_URL}/metrics/stats`);
+                const data = await response.json();
+                alert(`Metrics Statistics:\n\nTotal Requests: ${data.total_requests}\nAverage Response Time: ${data.average_response_time.toFixed(2)}ms\nSuccess Rate: ${data.success_rate.toFixed(2)}%\nFailed Requests: ${data.failed_requests}`);
+            } catch (e) {
+                alert('Error: ' + e);
+            }
+        }
+
+        // Import/Export functions
+        async function importRequests() {
+            const input = prompt('Enter import format (postman, insomnia, openapi, or json):');
+            if (!input) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/import`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ format: input, data: {} })
+                });
+                const data = await response.json();
+                alert(`Imported ${data.count} requests!`);
+                loadRequests();
+            } catch (e) {
+                alert('Error: ' + e);
+            }
+        }
+
+        async function exportRequests() {
+            const format = prompt('Enter export format (postman, insomnia, openapi, or json):');
+            if (!format) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/export?format=${format}`);
+                const data = await response.json();
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `apiclient-export.${format}.json`;
+                a.click();
+                alert('Export downloaded!');
+            } catch (e) {
+                alert('Error: ' + e);
+            }
+        }
+
+        // Modal closing functions
+        function closeModal(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+
+        function closeRequestModal() {
+            document.getElementById('request-modal').classList.remove('active');
+        }
+
+        function closeChainModal() {
+            document.getElementById('chain-modal').classList.remove('active');
+        }
+
+        function closeTemplateModal() {
+            document.getElementById('template-modal').classList.remove('active');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.remove('active');
+        }
+
+        function closeMockModal() {
+            document.getElementById('mock-modal').classList.remove('active');
+        }
+
+        function closeGraphQLModal() {
+            document.getElementById('graphql-modal').classList.remove('active');
         }
 
         // Initialize

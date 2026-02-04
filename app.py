@@ -6,6 +6,7 @@ Provides REST endpoints for request chains, templates, auth, mocks, and GraphQL
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 import json
@@ -14,6 +15,7 @@ import threading
 from datetime import datetime
 import requests
 import time
+import os
 
 from apiclient.config import (
     Config, RequestConfig, RequestChain, RequestTemplate, PerformanceMetric,
@@ -104,6 +106,66 @@ def delete_request(name: str):
     if config.delete_request(name):
         return {"status": "success"}
     raise HTTPException(status_code=404, detail="Request not found")
+
+
+@app.post("/api/requests/{name}/execute")
+def execute_request(name: str):
+    """Execute a specific request"""
+    requests_dict = config.load_requests()
+    if name not in requests_dict:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    req = requests_dict[name]
+    
+    try:
+        start = time.time()
+        if req.method == "GET":
+            resp = requests.get(req.url, headers=dict(req.headers or {}), timeout=30)
+        elif req.method == "POST":
+            resp = requests.post(req.url, json=req.body, headers=dict(req.headers or {}), timeout=30)
+        elif req.method == "PUT":
+            resp = requests.put(req.url, json=req.body, headers=dict(req.headers or {}), timeout=30)
+        elif req.method == "PATCH":
+            resp = requests.patch(req.url, json=req.body, headers=dict(req.headers or {}), timeout=30)
+        elif req.method == "DELETE":
+            resp = requests.delete(req.url, headers=dict(req.headers or {}), timeout=30)
+        else:
+            resp = requests.head(req.url, headers=dict(req.headers or {}), timeout=30)
+        
+        elapsed = time.time() - start
+        
+        try:
+            response_data = resp.json()
+        except:
+            response_data = {"text": resp.text[:500] if resp.text else ""}
+        
+        # Save metric with all required fields
+        try:
+            metric = PerformanceMetric(
+                request_name=name,
+                status_code=resp.status_code,
+                response_time=elapsed,
+                timestamp=datetime.now().isoformat(),
+                request_size=len(req.url) + len(str(req.body or "")),
+                response_size=len(resp.content)
+            )
+            config.save_metric(metric)
+        except Exception as metric_error:
+            # Don't fail the request if metric saving fails
+            pass
+        
+        return {
+            "status_code": resp.status_code,
+            "response": response_data,
+            "time_taken": elapsed,
+            "size": len(resp.content)
+        }
+    except requests.exceptions.Timeout:
+        raise HTTPException(status_code=408, detail="Request timeout")
+    except requests.exceptions.ConnectionError:
+        raise HTTPException(status_code=503, detail="Connection error")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # ==================== REQUEST HISTORY ====================
@@ -370,7 +432,7 @@ def import_requests(import_data: ImportData):
             headers = {h["key"]: h["value"] for h in req.get("header", [])}
             body = req.get("body", {}).get("raw")
             
-            saved = SavedRequest(name=name, method=method, url=url, headers=headers, body=body)
+            saved = RequestConfig(name=name, method=method, url=url, headers=headers, body=body)
             config.save_request(saved)
             count += 1
     
@@ -378,7 +440,7 @@ def import_requests(import_data: ImportData):
         # Parse Insomnia export
         for resource in import_data.data.get("resources", []):
             if resource.get("_type") == "request":
-                saved = SavedRequest(
+                saved = RequestConfig(
                     name=resource.get("name"),
                     method=resource.get("method", "GET"),
                     url=resource.get("url", ""),
@@ -645,6 +707,16 @@ def introspect_graphql_schema(name: str):
 def health_check():
     """Health check"""
     return {"status": "healthy"}
+
+
+# ==================== STATIC FILES & ROOT ====================
+@app.get("/")
+def root():
+    """Serve the dashboard HTML"""
+    html_path = os.path.join(os.path.dirname(__file__), "index.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path, media_type="text/html")
+    return {"message": "API Client Dashboard - Open /docs for API documentation"}
 
 
 if __name__ == "__main__":
