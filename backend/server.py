@@ -313,6 +313,63 @@ async def make_request_enhanced(request: RequestModel) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ==================== STATIC FILES & FRONTEND ====================
+
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, HTMLResponse
+
+# Check if frontend dist or standalone HTML exists
+frontend_dist = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
+frontend_root = os.path.join(os.path.dirname(__file__), "..", "frontend")
+standalone_html = os.path.join(frontend_root, "standalone.html")
+
+# Serve the standalone HTML at root
+@app.get("/")
+async def serve_root():
+    """Serve the React app root or standalone HTML"""
+    if os.path.exists(standalone_html):
+        return FileResponse(standalone_html)
+    
+    index_path = os.path.join(frontend_dist, "index.html") if os.path.exists(frontend_dist) else os.path.join(frontend_root, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    
+    return HTMLResponse("""
+    <html>
+        <head>
+            <title>ApiClient - API Testing Tool</title>
+            <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif; 
+                       display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #1e1e1e; color: #fff; }
+                .container { text-align: center; }
+                h1 { margin-bottom: 20px; }
+                p { font-size: 16px; margin: 10px 0; }
+                code { background: #333; padding: 2px 6px; border-radius: 3px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🚀 ApiClient - API Testing Tool</h1>
+                <p>Backend is running on <code>http://localhost:8000</code></p>
+                <p>API Endpoints: <code>/api/*</code></p>
+                <p>Health Check: <code>GET /health</code></p>
+            </div>
+        </body>
+    </html>
+    """)
+
+# Mount frontend assets if they exist
+if os.path.exists(frontend_dist):
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        """Serve frontend files"""
+        file_path = os.path.join(frontend_dist, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        # For client-side routing, serve index.html
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
+
+
 if __name__ == "__main__":
     import uvicorn
 

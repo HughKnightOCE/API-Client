@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ApiClient - API Testing Tool</title>
+    <style>
+        :root {
+            --bg-primary: #2d2d2d;
+            --bg-secondary: #1e1e1e;
+            --bg-tertiary: #3a3a3a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #888;
+            --border-color: #404040;
+            --accent: #0084ff;
+            --success: #28a745;
+            --error: #dc3545;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            font-size: 14px;
+        }
+
+        .app {
+            display: flex;
+            height: 100vh;
+            background: var(--bg-secondary);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--bg-primary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .dark-mode-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .dark-mode-toggle:hover {
+            background: var(--border-color);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .builder-section {
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .response-section {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.1);
+        }
+
+        select { font-family: inherit; }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0073e6;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .status-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .status-bar {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .response-content {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 3px solid var(--accent);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .response-content pre {
+            margin: 0;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px 20px;
+        }
+
+        .error {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 3px solid var(--error);
+            color: #ff6b6b;
+        }
+
+        .success {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 3px solid var(--success);
+            color: #51cf66;
+        }
+
+        h2 { margin-top: 0; margin-bottom: 20px; font-size: 18px; }
+        h3 { margin: 15px 0 10px 0; font-size: 14px; color: var(--text-secondary); }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .sidebar { width: 100%; max-height: 200px; }
+            .app { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>🔗 ApiClient</h1>
+                <button class="dark-mode-toggle" onclick="toggleDarkMode()">Dark</button>
+            </div>
+            <div class="sidebar-content">
+                <div class="section-title">Environments</div>
+                <div id="environments-list"></div>
+                <button class="btn btn-secondary" onclick="showAddEnvironment()" style="width: 100%; margin-top: 10px;">+ Add Environment</button>
+
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color);">
+
+                <div class="section-title">Saved Requests</div>
+                <div id="saved-requests-list"></div>
+
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color);">
+
+                <div class="section-title">Recent History</div>
+                <div id="history-list"></div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Builder Section -->
+            <div class="builder-section">
+                <h2>Request Builder</h2>
+
+                <!-- Environment Selection -->
+                <div class="form-group" id="env-selection" style="display: none;">
+                    <label>Environment</label>
+                    <select id="environment-select" onchange="loadEnvironmentVars()">
+                        <option value="">-- None --</option>
+                    </select>
+                </div>
+
+                <!-- Method -->
+                <div class="form-group">
+                    <label>Method</label>
+                    <select id="method" onchange="updateMethod()">
+                        <option>GET</option>
+                        <option>POST</option>
+                        <option>PUT</option>
+                        <option>PATCH</option>
+                        <option>DELETE</option>
+                        <option>HEAD</option>
+                    </select>
+                </div>
+
+                <!-- URL -->
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="text" id="url" placeholder="https://api.example.com/endpoint" />
+                </div>
+
+                <!-- Headers & Params -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Headers (JSON)</label>
+                        <textarea id="headers" placeholder='{"Authorization": "Bearer token"}'>{}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Query Params (JSON)</label>
+                        <textarea id="params" placeholder='{"page": "1", "limit": "10"}'>{}</textarea>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="form-group" id="body-group">
+                    <label>Body (JSON)</label>
+                    <textarea id="body" placeholder='{"key": "value"}'></textarea>
+                </div>
+
+                <!-- Assertions -->
+                <div class="form-group">
+                    <label>Response Assertions</label>
+                    <div id="assertions-list" style="margin-bottom: 10px;"></div>
+                    <button class="btn btn-secondary" onclick="showAddAssertion()" style="width: 100%;">+ Add Assertion</button>
+                </div>
+
+                <!-- Buttons -->
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="sendRequest()" id="send-btn">Send Request</button>
+                    <button class="btn btn-secondary" onclick="saveRequest()">Save Request</button>
+                </div>
+            </div>
+
+            <!-- Response Section -->
+            <div class="response-section">
+                <h2>Response</h2>
+                <div id="response-container" class="empty-state">Response will appear here</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadEnvironments();
+            await loadSavedRequests();
+            await loadHistory();
+        });
+
+        // Load Environments
+        async function loadEnvironments() {
+            try {
+                const res = await fetch(`${API_BASE}/environments`);
+                const data = await res.json();
+                const envs = data.environments || {};
+                
+                if (Object.keys(envs).length > 0) {
+                    document.getElementById('env-selection').style.display = 'block';
+                    const select = document.getElementById('environment-select');
+                    const envList = document.getElementById('environments-list');
+                    
+                    select.innerHTML = '<option value="">-- None --</option>';
+                    envList.innerHTML = '';
+                    
+                    Object.keys(envs).forEach(name => {
+                        const option = document.createElement('option');
+                        option.value = name;
+                        option.textContent = `${name} (${Object.keys(envs[name].variables || {}).length} vars)`;
+                        select.appendChild(option);
+
+                        const item = document.createElement('div');
+                        item.style.cssText = 'padding: 8px; background: var(--bg-tertiary); border-radius: 4px; margin-bottom: 5px; font-size: 12px; cursor: pointer;';
+                        item.textContent = `${name}`;
+                        item.onclick = () => select.value = name;
+                        envList.appendChild(item);
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading environments:', err);
+            }
+        }
+
+        // Load Saved Requests
+        async function loadSavedRequests() {
+            try {
+                const res = await fetch(`${API_BASE}/requests`);
+                const data = await res.json();
+                const requests = data.requests || [];
+                const list = document.getElementById('saved-requests-list');
+                
+                list.innerHTML = '';
+                requests.slice(0, 5).forEach(req => {
+                    const item = document.createElement('div');
+                    item.style.cssText = 'padding: 8px; background: var(--bg-tertiary); border-radius: 4px; margin-bottom: 5px; font-size: 12px; cursor: pointer;';
+                    item.textContent = `${req.method} ${req.name}`;
+                    item.onclick = () => loadRequest(req);
+                    list.appendChild(item);
+                });
+            } catch (err) {
+                console.error('Error loading requests:', err);
+            }
+        }
+
+        // Load History
+        async function loadHistory() {
+            try {
+                const res = await fetch(`${API_BASE}/history`);
+                const data = await res.json();
+                const history = data.history || [];
+                const list = document.getElementById('history-list');
+                
+                list.innerHTML = '';
+                history.slice(0, 5).forEach(item => {
+                    const div = document.createElement('div');
+                    div.style.cssText = 'padding: 5px; font-size: 11px; color: var(--text-secondary);';
+                    div.textContent = `${item.method} ${item.url.substring(0, 40)}...`;
+                    list.appendChild(div);
+                });
+            } catch (err) {
+                console.error('Error loading history:', err);
+            }
+        }
+
+        // Load Request
+        function loadRequest(req) {
+            document.getElementById('method').value = req.method;
+            document.getElementById('url').value = req.url;
+            document.getElementById('headers').value = JSON.stringify(req.headers || {}, null, 2);
+            document.getElementById('params').value = JSON.stringify(req.params || {}, null, 2);
+            document.getElementById('body').value = req.body || '';
+        }
+
+        // Send Request
+        async function sendRequest() {
+            const btn = document.getElementById('send-btn');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                const res = await fetch(`${API_BASE}/request/enhanced`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: document.getElementById('method').value,
+                        url: document.getElementById('url').value,
+                        headers: JSON.parse(document.getElementById('headers').value || '{}'),
+                        body: document.getElementById('body').value,
+                        params: JSON.parse(document.getElementById('params').value || '{}'),
+                        environment: document.getElementById('environment-select').value || null,
+                        assertions: getAssertions(),
+                    }),
+                });
+
+                const data = await res.json();
+                displayResponse(data);
+                await loadHistory();
+            } catch (err) {
+                displayError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Request';
+            }
+        }
+
+        // Save Request
+        async function saveRequest() {
+            const name = prompt('Save request as:');
+            if (!name) return;
+
+            try {
+                await fetch(`${API_BASE}/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        method: document.getElementById('method').value,
+                        url: document.getElementById('url').value,
+                        headers: JSON.parse(document.getElementById('headers').value || '{}'),
+                        body: document.getElementById('body').value,
+                        params: JSON.parse(document.getElementById('params').value || '{}'),
+                    }),
+                });
+                alert('Request saved!');
+                await loadSavedRequests();
+            } catch (err) {
+                alert('Error saving request: ' + err.message);
+            }
+        }
+
+        // Display Response
+        function displayResponse(data) {
+            const container = document.getElementById('response-container');
+            let html = '';
+
+            if (data.success) {
+                html += `<div class="status-bar status-success">✓ Status: ${data.status_code}</div>`;
+                
+                if (data.body) {
+                    html += '<h3>Response Body</h3>';
+                    html += '<div class="response-content"><pre>' + 
+                        JSON.stringify(data.body, null, 2) + 
+                        '</pre></div>';
+                }
+
+                if (data.assertions) {
+                    html += '<h3>Assertions</h3>';
+                    if (data.assertions.passed) {
+                        html += '<div class="success">✓ All ' + data.assertions.count + ' assertions passed</div>';
+                    } else {
+                        html += '<div class="error">✗ ' + data.assertions.count + ' assertions, ' + data.assertions.errors.length + ' failed</div>';
+                        if (data.assertions.errors.length > 0) {
+                            html += '<div style="margin-top: 10px;">';
+                            data.assertions.errors.forEach(err => {
+                                html += '<div class="error">' + err + '</div>';
+                            });
+                            html += '</div>';
+                        }
+                    }
+                }
+            } else {
+                html = '<div class="error">✗ Error: ' + data.error + '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Display Error
+        function displayError(msg) {
+            const container = document.getElementById('response-container');
+            container.innerHTML = '<div class="error">✗ Error: ' + msg + '</div>';
+        }
+
+        // Assertions Management
+        function getAssertions() {
+            const list = document.getElementById('assertions-list');
+            const items = list.querySelectorAll('[data-assertion]');
+            return Array.from(items).map(item => JSON.parse(item.dataset.assertion));
+        }
+
+        function showAddAssertion() {
+            const field = prompt('Field (e.g., "status", "data.id"):');
+            if (!field) return;
+            const operator = prompt('Operator (equals, contains, greater_than, etc.):');
+            if (!operator) return;
+            const expected = prompt('Expected value:');
+            if (!expected === null) return;
+
+            const assertion = { field, operator, expected };
+            addAssertion(assertion);
+        }
+
+        function addAssertion(assertion) {
+            const list = document.getElementById('assertions-list');
+            const item = document.createElement('div');
+            item.dataset.assertion = JSON.stringify(assertion);
+            item.style.cssText = 'padding: 8px; background: var(--bg-tertiary); border-radius: 4px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; font-size: 12px;';
+            item.innerHTML = `
+                <span>${assertion.field} <strong>${assertion.operator}</strong> ${assertion.expected}</span>
+                <button class="btn" onclick="this.parentElement.remove()" style="padding: 4px 8px;">×</button>
+            `;
+            list.appendChild(item);
+        }
+
+        // Environment Management
+        function showAddEnvironment() {
+            const name = prompt('Environment name:');
+            if (!name) return;
+            
+            const vars = {};
+            let count = 0;
+            while (count < 3) {
+                const key = prompt(`Variable ${count + 1} name (leave blank to skip):`);
+                if (!key) break;
+                const value = prompt(`Value for ${key}:`);
+                vars[key] = value;
+                count++;
+            }
+
+            createEnvironment(name, vars);
+        }
+
+        async function createEnvironment(name, variables) {
+            try {
+                await fetch(`${API_BASE}/environments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, variables }),
+                });
+                await loadEnvironments();
+            } catch (err) {
+                alert('Error creating environment: ' + err.message);
+            }
+        }
+
+        function loadEnvironmentVars() {
+            // Environment variables will be substituted by the backend
+        }
+
+        function updateMethod() {
+            const method = document.getElementById('method').value;
+            const bodyGroup = document.getElementById('body-group');
+            bodyGroup.style.display = ['POST', 'PUT', 'PATCH'].includes(method) ? 'block' : 'none';
+        }
+
+        function toggleDarkMode() {
+            // Theme toggle can be enhanced later
+            console.log('Dark mode toggled');
+        }
+
+        // Initialize UI
+        updateMethod();
+    </script>
+</body>
+</html>

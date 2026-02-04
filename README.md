@@ -1,40 +1,43 @@
-# ApiClient - Full Stack HTTP API Testing Tool
+# ApiClient Pro - Enterprise API Testing Platform
 
-A powerful, full-featured HTTP API testing tool available as both a CLI and web interface. Think Postman, but with both terminal and browser options.
+A powerful, full-featured HTTP API testing tool with advanced features for API automation, performance monitoring, and collaboration. Available as CLI, web dashboard, and REST API.
 
 ## Features
 
-- 🚀 **Make HTTP Requests** - GET, POST, PUT, DELETE, PATCH, HEAD
-- 💾 **Save & Load Requests** - Persistent storage for frequently used requests
-- 📊 **Formatted Responses** - Beautiful JSON rendering with headers and status codes
-- 📋 **Request History** - Automatic tracking of recent API calls
-- 🔐 **Headers & Auth** - Full support for custom headers and parameters
-- 🌙 **Dark Mode** - Easy on the eyes UI theme
-- 🖥️ **Dual Interface** - CLI tool + Modern web application
-- 📱 **Responsive Design** - Works on desktop and mobile browsers
+### Core Features
+- 🚀 **HTTP Methods** - GET, POST, PUT, DELETE, PATCH, HEAD
+- 💾 **Save & Load** - Persistent request storage
+- 📊 **Rich Formatting** - Beautiful JSON/XML response rendering
+- 📋 **History** - Automatic request tracking
+- 🔐 **Security** - Auth configs, API keys, OAuth2, JWT support
+- 🖥️ **Dual Interface** - CLI + Web Dashboard
+- 📱 **Responsive** - Works on desktop, tablet, mobile
+
+### Phase 2 - Automation & Analytics
+- ⛓️ **Request Chaining** - Execute requests sequentially with variable passing
+- 📝 **Templates** - Reusable request templates for common patterns
+- 📤 **Import/Export** - Postman, Insomnia, OpenAPI format support
+- 📈 **Performance Monitoring** - Track response times, success rates, analytics
+
+### Phase 3 - Advanced Features  
+- 🔑 **Authentication** - API Key, Bearer, OAuth2, JWT, Basic Auth
+- 🎭 **Mock Server** - Local mock API server for testing
+- 🔷 **GraphQL** - Query builder, introspection, variable support
 
 ## Project Structure
 
 ```
-apiclient/                 # Python CLI package
-├── __main__.py
-├── cli.py                # Typer CLI interface
-├── client.py             # HTTP request logic
-├── config.py             # Request storage
-└── formatter.py          # Terminal formatting
-
-backend/                   # FastAPI server
-├── server.py             # REST API endpoints
-└── requirements.txt
-
-frontend/                  # React web UI
-├── src/
-│   ├── components/       # React components
-│   ├── App.jsx
-│   └── main.jsx
-├── vite.config.js
-├── package.json
-└── index.html
+api-testing/
+├── apiclient/              # Python CLI package
+│   ├── __main__.py
+│   ├── cli.py             # Typer CLI with Phase 2&3 commands
+│   ├── client.py          # HTTP client
+│   ├── config.py          # Storage & models
+│   └── formatter.py       # Rich formatting
+├── app.py                 # FastAPI backend with all endpoints
+├── index.html             # Web dashboard
+├── requirements.txt       # Python dependencies
+└── FEATURES.md           # Detailed feature documentation
 ```
 
 ## Quick Start
@@ -42,110 +45,112 @@ frontend/                  # React web UI
 ### CLI Usage
 
 ```bash
-# Make a simple GET request
+# Make HTTP requests
 python -m apiclient get https://api.github.com/users/github
+python -m apiclient post https://jsonplaceholder.typicode.com/posts --body '{"title": "Test"}'
 
-# POST with body
-python -m apiclient post https://jsonplaceholder.typicode.com/posts \
-  --body '{"title": "Hello", "body": "World"}'
+# Request chaining
+python -m apiclient create-chain workflow '["request1", "request2"]'
+python -m apiclient execute-chain workflow
 
-# Save a request
-python -m apiclient save my-request -m GET -u https://api.example.com/users
+# Request templates
+python -m apiclient create-template rest-api "REST" GET "https://api.example.com/v1/{resource}"
 
-# View saved requests
-python -m apiclient list
+# Performance monitoring
+python -m apiclient show-metrics --limit 50
+python -m apiclient metrics-stats
 
-# Execute a saved request
-python -m apiclient run my-request
+# Authentication
+python -m apiclient create-auth-apikey mykey "sk_live_abc123"
+
+# GraphQL
+python -m apiclient create-graphql users "https://api.example.com/graphql" '{ users { id name } }'
+python -m apiclient execute-graphql users
+
+# Import/Export
+python -m apiclient export --format postman > collection.json
+python -m apiclient import-requests collection.json --format postman
 ```
 
-### Web Interface
+### Web Dashboard
 
 ```bash
-# Terminal 1: Start backend
-cd backend
-python server.py
+# Start FastAPI backend
+python app.py
 
-# Terminal 2: Start frontend
-cd frontend
-npm install
-npm run dev
+# Open dashboard in browser
+http://localhost:8000/
 ```
-
-Then open `http://localhost:5173` in your browser.
 
 ## Installation
 
-### CLI Setup
-
 ```bash
-pip install -r requirements.txt
-python -m apiclient --help
-```
+# Install Python dependencies
+pip install requests typer rich pydantic fastapi uvicorn
 
-### Full Stack Setup
-
-```bash
-# Backend dependencies
-pip install -r requirements.txt
-pip install -r backend/requirements.txt
-
-# Frontend dependencies
-cd frontend
-npm install
-```
-
-## Requirements
-
-### Backend (Python)
-- Python 3.8+
-- requests 2.31.0
-- typer 0.9.0
-- rich 13.7.0
-- pydantic 2.5.0
-- fastapi 0.104.1
-- uvicorn 0.24.0
-
-### Frontend (Node.js)
-- Node.js 16+
-- React 18.2.0
-- Axios 1.6.2
-- Vite 5.0.2
-
-## Development
-
-```bash
-# Run CLI tests
+# Run CLI
 python -m apiclient --help
 
-# Run backend server
-python backend/server.py
+# Run backend
+python app.py
 
-# Run frontend dev server
-cd frontend && npm run dev
-
-# Build frontend for production
-cd frontend && npm run build
+# Open dashboard
+http://localhost:8000
 ```
 
-## API Endpoints
+## Architecture
 
-- `GET /health` - Health check
-- `POST /request` - Make HTTP request
-- `POST /save` - Save a request
-- `GET /requests` - List saved requests
-- `GET /requests/{name}` - Get specific request
-- `DELETE /requests/{name}` - Delete a request
-- `GET /history` - Get request history
+### Request Storage
+All data stored in `~/.apiclient/`:
+- `requests.json` - Saved HTTP requests
+- `chains.json` - Request chains
+- `templates.json` - Request templates
+- `metrics.json` - Performance data
+- `auth.json` - Auth configurations
+- `mocks.json` - Mock endpoints
+- `graphql.json` - GraphQL queries
 
-## Deployment
+### API Endpoints
 
-### Deploy Frontend to Vercel
-```bash
-cd frontend
-npm run build
-# Use Vercel CLI or connect GitHub repo
-```
+**Requests:**
+- `GET /api/requests` - List all
+- `POST /api/requests` - Create
+- `GET /api/requests/{name}` - Get specific
+- `DELETE /api/requests/{name}` - Delete
+
+**Chains (Phase 2):**
+- `GET /api/chains` - List
+- `POST /api/chains` - Create
+- `POST /api/chains/{name}/execute` - Execute
+
+**Templates (Phase 2):**
+- `GET /api/templates` - List
+- `POST /api/templates` - Create
+- `POST /api/templates/{name}/apply` - Apply
+
+**Performance (Phase 2):**
+- `GET /api/metrics` - Get metrics
+- `GET /api/metrics/stats` - Get statistics
+
+**Authentication (Phase 3):**
+- `GET /api/auth` - List configs
+- `POST /api/auth` - Create config
+- `POST /api/auth/{name}/oauth2/token` - Get OAuth2 token
+
+**Mocks (Phase 3):**
+- `GET /api/mocks` - List endpoints
+- `POST /api/mocks` - Create endpoint
+- `POST /api/mocks/server/start` - Start server
+
+**GraphQL (Phase 3):**
+- `GET /api/graphql` - List queries
+- `POST /api/graphql` - Create query
+- `POST /api/graphql/{name}/execute` - Execute
+- `POST /api/graphql/{name}/introspect` - Introspect schema
+
+**Import/Export (Phase 2):**
+- `POST /api/import` - Import requests
+- `GET /api/export` - Export all requests
 
 ### Deploy Backend to Render/Railway
 ```bash
