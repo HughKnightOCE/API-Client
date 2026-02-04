@@ -1,0 +1,239 @@
+.response-viewer {
+  background: var(--bg-primary);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.response-viewer.empty {
+  justify-content: center;
+  align-items: center;
+  color: var(--text-secondary);
+}
+
+.response-viewer h2 {
+  margin-bottom: 15px;
+  color: var(--text-primary);
+}
+
+.response-viewer h3 {
+  margin-top: 15px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-bar {
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.status-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-redirect {
+  background: #cce5ff;
+  color: #004085;
+  border: 1px solid #b8daff;
+}
+
+.status-client-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.status-server-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.error {
+  background: #fff5f5;
+  border: 1px solid #feb2b2;
+}
+
+.error h3 {
+  color: var(--error);
+}
+
+.error-message {
+  background: var(--bg-secondary);
+  padding: 10px;
+  border-radius: 4px;
+  border-left: 3px solid var(--error);
+  color: var(--error);
+  word-break: break-word;
+}
+
+.headers-table {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.header-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header-row:last-child {
+  border-bottom: none;
+}
+
+.header-key-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-key {
+  padding: 10px;
+  background: var(--bg-tertiary);
+  font-weight: 500;
+  color: var(--accent);
+  flex: 1;
+}
+
+.header-with-tooltip .header-key-wrapper {
+  padding: 10px;
+}
+
+.header-tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: help;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.header-tooltip-text {
+  visibility: hidden;
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: white;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: normal;
+  white-space: normal;
+  width: 220px;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+.header-tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--accent);
+}
+
+.header-with-tooltip:hover .header-tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-value {
+  padding: 10px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.body-section {
+  margin-top: 15px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.body-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 15px;
+  overflow: auto;
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  max-height: 100%;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .header-row {
+    grid-template-columns: 1fr;
+  }
+
+  .header-key {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .header-value {
+    padding: 5px 10px;
+    background: var(--bg-tertiary);
+  }
+}
