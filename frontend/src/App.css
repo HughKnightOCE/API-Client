@@ -15,7 +15,21 @@
   flex: 0 0 50%;
   border-bottom: 1px solid var(--border-color);
   overflow-y: auto;
-  padding: 20px;
+  padding: 0;
+}
+
+.builder-tabs {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.environment-section,
+.assertion-section {
+  padding: 15px;
+  border-bottom: 1px solid var(--border-color);
+  max-height: 250px;
+  overflow-y: auto;
 }
 
 .response-section {

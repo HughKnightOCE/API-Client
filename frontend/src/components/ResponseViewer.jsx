@@ -21,7 +21,7 @@ const HEADER_EXPLANATIONS = {
   'x-powered-by': 'Technology used to generate the response',
 }
 
-function ResponseViewer({ response, loading }) {
+function ResponseViewer({ response, loading, assertions }) {
   const formatJson = (obj) => {
     return JSON.stringify(obj, null, 2)
   }
@@ -90,6 +90,25 @@ function ResponseViewer({ response, loading }) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {response.assertions && (
+        <div className={`assertions-section ${response.assertions.passed ? 'passed' : 'failed'}`}>
+          <h3>Assertions ({response.assertions.count})</h3>
+          <div className={`assertion-result ${response.assertions.passed ? 'success' : 'error'}`}>
+            {response.assertions.passed ? '✓ All assertions passed' : '✗ Some assertions failed'}
+          </div>
+          {response.assertions.errors && response.assertions.errors.length > 0 && (
+            <div className="assertion-errors">
+              {response.assertions.errors.map((error, idx) => (
+                <div key={idx} className="assertion-error-item">
+                  <span className="error-icon">⚠</span>
+                  {error}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

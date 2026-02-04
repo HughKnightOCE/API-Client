@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './RequestBuilder.css'
 
-function RequestBuilder({ request, setRequest, onMakeRequest, onSaveRequest, loading }) {
+function RequestBuilder({ request, setRequest, onMakeRequest, onSaveRequest, loading, environments, selectedEnvironment, onSelectEnvironment }) {
   const [saveName, setSaveName] = useState('')
 
   const handleMethodChange = (e) => {
@@ -44,6 +44,28 @@ function RequestBuilder({ request, setRequest, onMakeRequest, onSaveRequest, loa
   return (
     <div className="request-builder">
       <h2>Request Builder</h2>
+
+      {environments && Object.keys(environments).length > 0 && (
+        <div className="form-group">
+          <label className="label-with-tooltip">
+            Environment
+            <span className="tooltip-icon">?</span>
+            <span className="tooltip-text">Select an environment to substitute {{'{'}VARIABLES{'}'}} in URL, headers, body, and params</span>
+          </label>
+          <select
+            value={selectedEnvironment || ''}
+            onChange={(e) => onSelectEnvironment(e.target.value || null)}
+            className="environment-select"
+          >
+            <option value="">-- None --</option>
+            {Object.entries(environments).map(([name, env]) => (
+              <option key={name} value={name}>
+                {name} ({Object.keys(env.variables || {}).length} vars)
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="form-group">
         <label className="label-with-tooltip">

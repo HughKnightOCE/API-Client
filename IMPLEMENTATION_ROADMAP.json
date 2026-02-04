@@ -1,0 +1,2044 @@
+{
+  "project": "ApiClient - Comprehensive Feature Expansion Roadmap",
+  "version": "1.0",
+  "created": "2026-02-04",
+  "overview": {
+    "total_features": 10,
+    "estimated_total_effort": "24-28 weeks (3 phases)",
+    "target_users": ["API developers", "QA engineers", "Integration testers"],
+    "success_metrics": ["Feature completion", "Zero regressions", "Performance benchmarks", "User adoption"]
+  },
+  "architecture_changes": {
+    "storage_structure": {
+      "description": "Enhanced JSON storage schema to support new features while maintaining backward compatibility",
+      "current_structure": {
+        "~/.apiclient/requests.json": "Flat dictionary of saved requests",
+        "~/.apiclient/history.json": "Array of recent requests"
+      },
+      "new_structure": {
+        "~/.apiclient/requests.json": "Hierarchical collection structure with folders",
+        "~/.apiclient/environments.json": "Environment variables and API keys",
+        "~/.apiclient/templates.json": "Request templates library",
+        "~/.apiclient/assertions.json": "Response validation rules",
+        "~/.apiclient/collections_metadata.json": "Collection hierarchy and metadata",
+        "~/.apiclient/chains.json": "Request chain definitions",
+        "~/.apiclient/performance.json": "Response time metrics and benchmarks",
+        "~/.apiclient/auth_tokens.json": "OAuth2 tokens, JWT data, API keys (encrypted)",
+        "~/.apiclient/mocks.json": "Mock response definitions",
+        "~/.apiclient/graphql_schemas.json": "Cached GraphQL schemas"
+      }
+    },
+    "data_models": {
+      "EnvironmentVariable": {
+        "fields": {
+          "id": "string (UUID)",
+          "name": "string (e.g., 'API_KEY', 'BASE_URL')",
+          "value": "string (encrypted if sensitive)",
+          "environment_id": "string (dev/staging/prod)",
+          "is_secret": "boolean",
+          "created_at": "timestamp",
+          "updated_at": "timestamp"
+        },
+        "description": "Stores environment-specific variables with encryption"
+      },
+      "Collection": {
+        "fields": {
+          "id": "string (UUID)",
+          "name": "string",
+          "description": "string",
+          "parent_id": "string|null (for nested folders)",
+          "requests": "RequestConfig[]",
+          "sub_collections": "Collection[]",
+          "metadata": {
+            "created_at": "timestamp",
+            "updated_at": "timestamp",
+            "owner": "string",
+            "tags": "string[]",
+            "color": "string (hex)"
+          }
+        },
+        "description": "Hierarchical organization of requests"
+      },
+      "RequestTemplate": {
+        "fields": {
+          "id": "string (UUID)",
+          "name": "string",
+          "category": "string (REST, GraphQL, gRPC, Webhooks)",
+          "description": "string",
+          "base_url": "string",
+          "method": "string",
+          "headers": "object (with {{VAR}} placeholders)",
+          "body": "string (with {{VAR}} placeholders)",
+          "params": "object",
+          "default_environment": "string",
+          "documentation_url": "string",
+          "example_response": "object",
+          "tags": "string[]"
+        },
+        "description": "Pre-built request templates for common APIs"
+      },
+      "Assertion": {
+        "fields": {
+          "id": "string (UUID)",
+          "name": "string",
+          "request_id": "string",
+          "assertions": [
+            {
+              "type": "string (status_code, response_time, json_path, header, content_type, schema)",
+              "operator": "string (equals, not_equals, greater_than, less_than, contains, regex_match)",
+              "expected_value": "any",
+              "actual_value": "any (populated after execution)",
+              "passed": "boolean",
+              "message": "string"
+            }
+          ],
+          "fail_on_error": "boolean"
+        },
+        "description": "Response validation and testing rules"
+      },
+      "RequestChain": {
+        "fields": {
+          "id": "string (UUID)",
+          "name": "string",
+          "description": "string",
+          "requests": [
+            {
+              "request_id": "string",
+              "variable_mappings": {
+                "from_field": "string (JSON path in response)",
+                "to_variable": "string (variable name)"
+              },
+              "delay_ms": "number",
+              "skip_on_error": "boolean",
+              "conditional": "string (JavaScript expression)"
+            }
+          ],
+          "execution_log": [
+            {
+              "request_id": "string",
+              "status": "string (success, failed, skipped)",
+              "response": "object",
+              "timestamp": "timestamp",
+              "extracted_variables": "object"
+            }
+          ]
+        },
+        "description": "Chained sequential request execution with variable passing"
+      },
+      "PerformanceMetric": {
+        "fields": {
+          "id": "string (UUID)",
+          "request_id": "string",
+          "timestamp": "timestamp",
+          "response_time_ms": "number",
+          "status_code": "number",
+          "url": "string",
+          "method": "string",
+          "size_bytes": "number",
+          "dns_time_ms": "number",
+          "tcp_time_ms": "number",
+          "ttfb_ms": "number (time to first byte)"
+        },
+        "description": "Tracks response time and performance data"
+      },
+      "AuthenticationConfig": {
+        "fields": {
+          "id": "string (UUID)",
+          "name": "string",
+          "type": "string (api_key, bearer_token, basic, oauth2, jwt, digest)",
+          "api_key": {
+            "header_name": "string",
+            "key": "string (encrypted)"
+          },
+          "bearer_token": {
+            "token": "string (encrypted)"
+          },
+          "basic": {
+            "username": "string",
+            "password": "string (encrypted)"
+          },
+          "oauth2": {
+            "client_id": "string",
+            "client_secret": "string (encrypted)",
+            "token_url": "string",
+            "scopes": "string[]",
+            "auth_url": "string",
+            "refresh_token": "string (encrypted)",
+            "access_token": "string (encrypted)",
+            "expires_at": "timestamp"
+          },
+          "jwt": {
+            "secret": "string (encrypted)",
+            "algorithm": "string (HS256, RS256, etc)",
+            "claims": "object",
+            "token": "string (encrypted)"
+          }
+        },
+        "description": "Centralized authentication credential management"
+      },
+      "MockServerConfig": {
+        "fields": {
+          "id": "string (UUID)",
+          "name": "string",
+          "port": "number (default 9090)",
+          "enabled": "boolean",
+          "routes": [
+            {
+              "path": "string",
+              "method": "string",
+              "status_code": "number",
+              "headers": "object",
+              "body": "object|string",
+              "delay_ms": "number",
+              "response_type": "string (static, dynamic, proxy)"
+            }
+          ],
+          "base_url": "string (generated: http://localhost:9090)"
+        },
+        "description": "Mock HTTP server configuration for testing"
+      },
+      "GraphQLQuery": {
+        "fields": {
+          "id": "string (UUID)",
+          "name": "string",
+          "endpoint": "string",
+          "query": "string (GraphQL query text)",
+          "variables": "object",
+          "operation_name": "string",
+          "headers": "object",
+          "introspection_schema": "object (cached)"
+        },
+        "description": "GraphQL query builder and schema introspection"
+      }
+    },
+    "pydantic_models": {
+      "description": "New Pydantic models to add to config.py and models.py",
+      "models": [
+        "EnvironmentConfig",
+        "CollectionMetadata",
+        "RequestTemplateModel",
+        "AssertionRule",
+        "RequestChainModel",
+        "PerformanceMetricModel",
+        "AuthenticationConfigModel",
+        "MockEndpoint",
+        "GraphQLQueryModel"
+      ]
+    }
+  },
+  "backend_endpoints": {
+    "description": "FastAPI endpoints to add to backend/server.py and supporting modules",
+    "endpoints": {
+      "environments": {
+        "tag": "Environments",
+        "endpoints": [
+          {
+            "method": "GET",
+            "path": "/api/v1/environments",
+            "description": "List all environment configurations",
+            "response": {
+              "environments": [
+                {
+                  "id": "string",
+                  "name": "string",
+                  "variables": "object"
+                }
+              ]
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/environments",
+            "description": "Create new environment",
+            "request": {
+              "name": "string",
+              "variables": "object"
+            },
+            "response": {
+              "id": "string",
+              "message": "string"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/environments/{env_id}",
+            "description": "Get specific environment",
+            "response": {
+              "id": "string",
+              "name": "string",
+              "variables": "object"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/api/v1/environments/{env_id}",
+            "description": "Update environment",
+            "request": {
+              "name": "string",
+              "variables": "object"
+            },
+            "response": {
+              "message": "string"
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/api/v1/environments/{env_id}",
+            "description": "Delete environment",
+            "response": {
+              "message": "string"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/environments/{env_id}/variables",
+            "description": "Add variable to environment",
+            "request": {
+              "name": "string",
+              "value": "string",
+              "is_secret": "boolean"
+            },
+            "response": {
+              "variable_id": "string"
+            }
+          }
+        ]
+      },
+      "collections": {
+        "tag": "Collections",
+        "endpoints": [
+          {
+            "method": "GET",
+            "path": "/api/v1/collections",
+            "description": "List all collections with hierarchy",
+            "response": {
+              "collections": "Collection[]"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/collections",
+            "description": "Create new collection",
+            "request": {
+              "name": "string",
+              "description": "string",
+              "parent_id": "string|null"
+            },
+            "response": {
+              "id": "string",
+              "message": "string"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/collections/{collection_id}",
+            "description": "Get collection details",
+            "response": {
+              "id": "string",
+              "name": "string",
+              "requests": "RequestConfig[]",
+              "sub_collections": "Collection[]"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/api/v1/collections/{collection_id}",
+            "description": "Update collection metadata",
+            "request": {
+              "name": "string",
+              "description": "string"
+            },
+            "response": {
+              "message": "string"
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/api/v1/collections/{collection_id}",
+            "description": "Delete collection and all requests",
+            "response": {
+              "message": "string",
+              "deleted_count": "number"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/collections/{collection_id}/requests/{request_id}",
+            "description": "Move request to collection",
+            "response": {
+              "message": "string"
+            }
+          }
+        ]
+      },
+      "templates": {
+        "tag": "Templates",
+        "endpoints": [
+          {
+            "method": "GET",
+            "path": "/api/v1/templates",
+            "description": "List all request templates (with filtering)",
+            "query_params": {
+              "category": "string (optional)",
+              "search": "string (optional)"
+            },
+            "response": {
+              "templates": "RequestTemplate[]"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/templates",
+            "description": "Create new request template",
+            "request": "RequestTemplate",
+            "response": {
+              "id": "string"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/templates/{template_id}",
+            "description": "Get template details",
+            "response": "RequestTemplate"
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/templates/{template_id}/apply",
+            "description": "Apply template to new request",
+            "request": {
+              "environment_id": "string",
+              "variable_overrides": "object"
+            },
+            "response": {
+              "request_id": "string",
+              "generated_request": "RequestConfig"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/templates/categories",
+            "description": "List template categories",
+            "response": {
+              "categories": "string[]"
+            }
+          }
+        ]
+      },
+      "assertions": {
+        "tag": "Assertions",
+        "endpoints": [
+          {
+            "method": "POST",
+            "path": "/api/v1/assertions",
+            "description": "Create assertion rule for request",
+            "request": "Assertion",
+            "response": {
+              "assertion_id": "string"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/assertions/{request_id}",
+            "description": "Get assertions for a request",
+            "response": {
+              "assertions": "Assertion[]"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/assertions/validate",
+            "description": "Validate response against assertions",
+            "request": {
+              "response": "object",
+              "assertion_ids": "string[]"
+            },
+            "response": {
+              "passed": "boolean",
+              "results": [
+                {
+                  "assertion_id": "string",
+                  "passed": "boolean",
+                  "message": "string"
+                }
+              ]
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/api/v1/assertions/{assertion_id}",
+            "description": "Delete assertion",
+            "response": {
+              "message": "string"
+            }
+          }
+        ]
+      },
+      "import_export": {
+        "tag": "ImportExport",
+        "endpoints": [
+          {
+            "method": "POST",
+            "path": "/api/v1/import/postman",
+            "description": "Import Postman collection",
+            "request": {
+              "collection_json": "object (Postman v2.1 format)"
+            },
+            "response": {
+              "imported_count": "number",
+              "collection_id": "string"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/import/insomnia",
+            "description": "Import Insomnia collection",
+            "request": {
+              "collection_json": "object"
+            },
+            "response": {
+              "imported_count": "number",
+              "collection_id": "string"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/import/openapi",
+            "description": "Import OpenAPI/Swagger spec",
+            "request": {
+              "spec_json": "object"
+            },
+            "response": {
+              "imported_count": "number",
+              "collection_id": "string"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/export/postman/{collection_id}",
+            "description": "Export collection as Postman",
+            "response": "Postman collection JSON"
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/export/insomnia/{collection_id}",
+            "description": "Export collection as Insomnia",
+            "response": "Insomnia collection JSON"
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/export/openapi/{collection_id}",
+            "description": "Export collection as OpenAPI",
+            "response": "OpenAPI spec JSON"
+          }
+        ]
+      },
+      "chains": {
+        "tag": "RequestChains",
+        "endpoints": [
+          {
+            "method": "POST",
+            "path": "/api/v1/chains",
+            "description": "Create request chain",
+            "request": "RequestChain",
+            "response": {
+              "chain_id": "string"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/chains",
+            "description": "List all chains",
+            "response": {
+              "chains": "RequestChain[]"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/chains/{chain_id}/execute",
+            "description": "Execute request chain",
+            "request": {
+              "initial_variables": "object (optional)"
+            },
+            "response": {
+              "execution_id": "string",
+              "results": [
+                {
+                  "request_id": "string",
+                  "status": "string",
+                  "response": "object",
+                  "extracted_variables": "object"
+                }
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/chains/{chain_id}/executions",
+            "description": "Get execution history for chain",
+            "response": {
+              "executions": [
+                {
+                  "execution_id": "string",
+                  "timestamp": "timestamp",
+                  "status": "string",
+                  "results": "object[]"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "performance": {
+        "tag": "Performance",
+        "endpoints": [
+          {
+            "method": "GET",
+            "path": "/api/v1/performance/metrics/{request_id}",
+            "description": "Get performance metrics for request",
+            "query_params": {
+              "limit": "number (default 100)",
+              "days": "number (default 7)"
+            },
+            "response": {
+              "metrics": "PerformanceMetric[]"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/performance/load-test",
+            "description": "Execute load test on endpoint",
+            "request": {
+              "url": "string",
+              "method": "string",
+              "concurrency": "number",
+              "iterations": "number",
+              "headers": "object",
+              "body": "string"
+            },
+            "response": {
+              "test_id": "string",
+              "status": "string (queued, running, completed)"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/performance/load-test/{test_id}",
+            "description": "Get load test results",
+            "response": {
+              "test_id": "string",
+              "status": "string",
+              "results": {
+                "total_requests": "number",
+                "successful": "number",
+                "failed": "number",
+                "avg_response_time_ms": "number",
+                "min_response_time_ms": "number",
+                "max_response_time_ms": "number",
+                "p95_response_time_ms": "number",
+                "p99_response_time_ms": "number",
+                "requests_per_second": "number"
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/performance/analytics/{request_id}",
+            "description": "Get performance analytics/trends",
+            "response": {
+              "chart_data": {
+                "timeline": "number[]",
+                "avg_response_times": "number[]",
+                "status_codes": "object"
+              }
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "tag": "Authentication",
+        "endpoints": [
+          {
+            "method": "POST",
+            "path": "/api/v1/auth/configs",
+            "description": "Create authentication configuration",
+            "request": "AuthenticationConfig",
+            "response": {
+              "auth_id": "string"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/auth/configs",
+            "description": "List all auth configurations",
+            "response": {
+              "configs": "AuthenticationConfig[]"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/auth/oauth2/authorize",
+            "description": "Start OAuth2 authorization flow",
+            "request": {
+              "auth_id": "string"
+            },
+            "response": {
+              "auth_url": "string",
+              "state": "string"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/auth/oauth2/callback",
+            "description": "Handle OAuth2 callback",
+            "request": {
+              "code": "string",
+              "state": "string",
+              "auth_id": "string"
+            },
+            "response": {
+              "access_token": "string",
+              "expires_in": "number"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/auth/jwt/decode",
+            "description": "Decode and validate JWT",
+            "request": {
+              "token": "string",
+              "secret": "string (optional)"
+            },
+            "response": {
+              "decoded": "object",
+              "valid": "boolean",
+              "expires_at": "timestamp"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/auth/jwt/generate",
+            "description": "Generate JWT token",
+            "request": {
+              "auth_id": "string",
+              "claims": "object"
+            },
+            "response": {
+              "token": "string"
+            }
+          }
+        ]
+      },
+      "mocks": {
+        "tag": "MockServer",
+        "endpoints": [
+          {
+            "method": "POST",
+            "path": "/api/v1/mocks/server",
+            "description": "Start mock server",
+            "request": {
+              "port": "number (optional, default 9090)"
+            },
+            "response": {
+              "server_id": "string",
+              "base_url": "string",
+              "status": "string"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/mocks/routes",
+            "description": "Add mock endpoint",
+            "request": {
+              "path": "string",
+              "method": "string",
+              "status_code": "number",
+              "headers": "object",
+              "body": "object|string",
+              "delay_ms": "number (optional)"
+            },
+            "response": {
+              "route_id": "string"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/mocks/routes",
+            "description": "List all mock routes",
+            "response": {
+              "routes": "object[]"
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/api/v1/mocks/routes/{route_id}",
+            "description": "Delete mock route",
+            "response": {
+              "message": "string"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/mocks/server/stop",
+            "description": "Stop mock server",
+            "response": {
+              "message": "string"
+            }
+          }
+        ]
+      },
+      "graphql": {
+        "tag": "GraphQL",
+        "endpoints": [
+          {
+            "method": "POST",
+            "path": "/api/v1/graphql/query",
+            "description": "Execute GraphQL query",
+            "request": {
+              "endpoint": "string",
+              "query": "string",
+              "variables": "object",
+              "operation_name": "string (optional)",
+              "headers": "object"
+            },
+            "response": {
+              "data": "object",
+              "errors": "object[] (optional)"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/graphql/schema",
+            "description": "Introspect GraphQL schema",
+            "query_params": {
+              "endpoint": "string"
+            },
+            "response": {
+              "schema": "object"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/v1/graphql/queries",
+            "description": "Save GraphQL query",
+            "request": "GraphQLQuery",
+            "response": {
+              "query_id": "string"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/v1/graphql/queries",
+            "description": "List saved GraphQL queries",
+            "response": {
+              "queries": "GraphQLQuery[]"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "frontend_components": {
+    "description": "React components to add to frontend/src/",
+    "new_components": {
+      "EnvironmentManager": {
+        "path": "frontend/src/components/EnvironmentManager.jsx",
+        "props": {
+          "environments": "object[]",
+          "onEnvironmentChange": "function",
+          "onEnvironmentCreate": "function"
+        },
+        "features": [
+          "List available environments",
+          "Create/edit/delete environments",
+          "Add/remove variables",
+          "Set active environment",
+          "Encrypt sensitive variables UI"
+        ],
+        "integrations": ["EnvironmentEditor", "VariableInput"]
+      },
+      "EnvironmentEditor": {
+        "path": "frontend/src/components/EnvironmentEditor.jsx",
+        "props": {
+          "environment": "object",
+          "onSave": "function",
+          "onCancel": "function"
+        },
+        "features": [
+          "Form for environment details",
+          "Add/remove variables",
+          "Toggle secret visibility",
+          "Validation"
+        ]
+      },
+      "CollectionTree": {
+        "path": "frontend/src/components/CollectionTree.jsx",
+        "props": {
+          "collections": "Collection[]",
+          "onCollectionSelect": "function",
+          "onRequestSelect": "function",
+          "onCreateCollection": "function",
+          "onDeleteCollection": "function"
+        },
+        "features": [
+          "Hierarchical folder tree",
+          "Drag-drop reorganization",
+          "Rename collections",
+          "Nested request organization",
+          "Context menu for actions"
+        ],
+        "integrations": ["CollectionContextMenu"]
+      },
+      "CollectionContextMenu": {
+        "path": "frontend/src/components/CollectionContextMenu.jsx",
+        "features": [
+          "Create new collection",
+          "Create new request in collection",
+          "Rename collection",
+          "Delete collection",
+          "Export collection"
+        ]
+      },
+      "TemplateLibrary": {
+        "path": "frontend/src/components/TemplateLibrary.jsx",
+        "props": {
+          "templates": "object[]",
+          "categories": "string[]",
+          "onApplyTemplate": "function"
+        },
+        "features": [
+          "Browse templates by category",
+          "Search templates",
+          "Preview template details",
+          "Apply template to new request",
+          "Manage custom templates"
+        ],
+        "integrations": ["TemplatePreview", "TemplateApplier"]
+      },
+      "TemplatePreview": {
+        "path": "frontend/src/components/TemplatePreview.jsx",
+        "props": {
+          "template": "object",
+          "onApply": "function"
+        },
+        "features": [
+          "Display template details",
+          "Show example request/response",
+          "Display documentation link"
+        ]
+      },
+      "AssertionBuilder": {
+        "path": "frontend/src/components/AssertionBuilder.jsx",
+        "props": {
+          "requestId": "string",
+          "assertions": "object[]",
+          "onAddAssertion": "function",
+          "onRemoveAssertion": "function"
+        },
+        "features": [
+          "Add status code assertion",
+          "Add response time assertion",
+          "Add JSON path assertion",
+          "Add header assertion",
+          "Add content-type assertion",
+          "Add schema validation assertion",
+          "Visual builder with dropdowns"
+        ],
+        "integrations": ["AssertionRule"]
+      },
+      "AssertionRule": {
+        "path": "frontend/src/components/AssertionRule.jsx",
+        "features": [
+          "Single assertion rule row",
+          "Type selector dropdown",
+          "Operator selector",
+          "Expected value input",
+          "Delete button"
+        ]
+      },
+      "AssertionResults": {
+        "path": "frontend/src/components/AssertionResults.jsx",
+        "props": {
+          "results": "object[]",
+          "passed": "boolean"
+        },
+        "features": [
+          "Show pass/fail status",
+          "Display assertion details",
+          "Expected vs actual comparison",
+          "Error messages"
+        ]
+      },
+      "ImportExportDialog": {
+        "path": "frontend/src/components/ImportExportDialog.jsx",
+        "props": {
+          "isOpen": "boolean",
+          "onClose": "function",
+          "mode": "string (import|export)"
+        },
+        "features": [
+          "Import Postman collection",
+          "Import Insomnia collection",
+          "Import OpenAPI spec",
+          "Export to Postman format",
+          "Export to Insomnia format",
+          "Export to OpenAPI format",
+          "File upload/download"
+        ],
+        "integrations": ["ImportFileDropzone", "ExportOptions"]
+      },
+      "ChainBuilder": {
+        "path": "frontend/src/components/ChainBuilder.jsx",
+        "props": {
+          "chain": "object|null",
+          "requests": "RequestConfig[]",
+          "onSave": "function"
+        },
+        "features": [
+          "Drag-drop request ordering",
+          "Add/remove requests from chain",
+          "Configure variable mapping",
+          "Set delay between requests",
+          "Add conditional logic",
+          "Visualize request flow"
+        ],
+        "integrations": ["ChainRequestRow", "VariableMapping"]
+      },
+      "ChainRequestRow": {
+        "path": "frontend/src/components/ChainRequestRow.jsx",
+        "features": [
+          "Show request details",
+          "Configure delay",
+          "Map response variables",
+          "Set skip-on-error option"
+        ]
+      },
+      "ChainExecutor": {
+        "path": "frontend/src/components/ChainExecutor.jsx",
+        "props": {
+          "chainId": "string",
+          "onExecutionStart": "function"
+        },
+        "features": [
+          "Execute chain button",
+          "Show execution progress",
+          "Display real-time results",
+          "Show extracted variables",
+          "Display execution history"
+        ]
+      },
+      "PerformanceMonitor": {
+        "path": "frontend/src/components/PerformanceMonitor.jsx",
+        "props": {
+          "requestId": "string",
+          "metrics": "object[]"
+        },
+        "features": [
+          "Display response time graph",
+          "Show min/max/avg metrics",
+          "Display load test results",
+          "Show performance trends",
+          "Export metrics CSV"
+        ],
+        "integrations": ["ResponseTimeChart", "LoadTestResults"]
+      },
+      "ResponseTimeChart": {
+        "path": "frontend/src/components/ResponseTimeChart.jsx",
+        "props": {
+          "data": "object[]",
+          "timeRange": "string (7d|30d|90d)"
+        },
+        "features": [
+          "Line chart of response times",
+          "Filter by date range",
+          "Show percentile bands (p50, p95, p99)"
+        ],
+        "dependencies": ["recharts"]
+      },
+      "LoadTestDialog": {
+        "path": "frontend/src/components/LoadTestDialog.jsx",
+        "props": {
+          "isOpen": "boolean",
+          "onClose": "function",
+          "requestId": "string"
+        },
+        "features": [
+          "Configure concurrency",
+          "Configure iterations",
+          "Start load test",
+          "Stream live results",
+          "Display final statistics"
+        ]
+      },
+      "LoadTestResults": {
+        "path": "frontend/src/components/LoadTestResults.jsx",
+        "props": {
+          "results": "object"
+        },
+        "features": [
+          "Display total requests",
+          "Show success/failure counts",
+          "Display response time distribution",
+          "Show requests per second",
+          "Export results"
+        ]
+      },
+      "AuthenticationPanel": {
+        "path": "frontend/src/components/AuthenticationPanel.jsx",
+        "props": {
+          "requestId": "string",
+          "authConfigs": "object[]",
+          "onAuthSelect": "function"
+        },
+        "features": [
+          "List available auth configs",
+          "Create new auth config",
+          "Edit auth config",
+          "Delete auth config",
+          "Test authentication"
+        ],
+        "integrations": ["AuthTypeSelector", "OAuth2Flow"]
+      },
+      "AuthTypeSelector": {
+        "path": "frontend/src/components/AuthTypeSelector.jsx",
+        "features": [
+          "API Key configuration",
+          "Bearer token input",
+          "Basic auth (username/password)",
+          "OAuth2 config",
+          "JWT configuration",
+          "Digest auth"
+        ]
+      },
+      "OAuth2Flow": {
+        "path": "frontend/src/components/OAuth2Flow.jsx",
+        "props": {
+          "authConfig": "object",
+          "onTokenReceived": "function"
+        },
+        "features": [
+          "Click to authorize",
+          "Handle OAuth2 redirect",
+          "Display token info",
+          "Show token expiration",
+          "Refresh token button"
+        ]
+      },
+      "JWTDecoder": {
+        "path": "frontend/src/components/JWTDecoder.jsx",
+        "props": {
+          "token": "string"
+        },
+        "features": [
+          "Decode JWT token",
+          "Display header, payload, signature",
+          "Show expiration time",
+          "Validate signature"
+        ]
+      },
+      "MockServerPanel": {
+        "path": "frontend/src/components/MockServerPanel.jsx",
+        "props": {
+          "isRunning": "boolean",
+          "routes": "object[]",
+          "onStartServer": "function",
+          "onStopServer": "function"
+        },
+        "features": [
+          "Start/stop mock server",
+          "Display base URL",
+          "Add mock endpoint",
+          "List mock routes",
+          "Edit mock responses",
+          "Delete mock routes",
+          "Set response delays"
+        ],
+        "integrations": ["MockRouteEditor"]
+      },
+      "MockRouteEditor": {
+        "path": "frontend/src/components/MockRouteEditor.jsx",
+        "props": {
+          "route": "object|null",
+          "onSave": "function",
+          "onCancel": "function"
+        },
+        "features": [
+          "Edit path, method, status code",
+          "Edit response headers",
+          "Edit response body (JSON)",
+          "Set response delay",
+          "Validate JSON"
+        ]
+      },
+      "GraphQLQueryBuilder": {
+        "path": "frontend/src/components/GraphQLQueryBuilder.jsx",
+        "props": {
+          "endpoint": "string",
+          "query": "string",
+          "onQueryChange": "function",
+          "onExecute": "function"
+        },
+        "features": [
+          "Query text editor with syntax highlighting",
+          "Variables input panel",
+          "Operation name selector",
+          "Schema explorer sidebar",
+          "Query validation",
+          "Execute query button"
+        ],
+        "integrations": ["GraphQLSchemaExplorer", "GraphQLVariables"]
+      },
+      "GraphQLSchemaExplorer": {
+        "path": "frontend/src/components/GraphQLSchemaExplorer.jsx",
+        "props": {
+          "schema": "object",
+          "onFieldSelect": "function"
+        },
+        "features": [
+          "Browse schema types",
+          "Display fields and arguments",
+          "Show type documentation",
+          "Insert field into query",
+          "Search types and fields"
+        ]
+      },
+      "GraphQLVariables": {
+        "path": "frontend/src/components/GraphQLVariables.jsx",
+        "props": {
+          "variables": "object",
+          "schema": "object",
+          "onVariablesChange": "function"
+        },
+        "features": [
+          "Edit variables as JSON",
+          "Validate against schema",
+          "Type suggestions"
+        ]
+      },
+      "GraphQLResponseViewer": {
+        "path": "frontend/src/components/GraphQLResponseViewer.jsx",
+        "props": {
+          "data": "object",
+          "errors": "object[] (optional)"
+        },
+        "features": [
+          "Display GraphQL data",
+          "Display errors with descriptions",
+          "Syntax highlighting",
+          "Expand/collapse nested objects"
+        ]
+      }
+    },
+    "modified_components": {
+      "RequestBuilder": {
+        "changes": [
+          "Add environment variable selector dropdown",
+          "Add template selector dropdown",
+          "Add authentication selector",
+          "Add assertion builder panel",
+          "Add request chaining option"
+        ]
+      },
+      "ResponseViewer": {
+        "changes": [
+          "Add assertion results panel",
+          "Add performance metrics display",
+          "Add response time badge",
+          "Add save assertion button"
+        ]
+      },
+      "Sidebar": {
+        "changes": [
+          "Replace flat request list with CollectionTree",
+          "Add environment switcher",
+          "Add template library button",
+          "Add mock server status",
+          "Add performance analytics link"
+        ]
+      },
+      "App": {
+        "changes": [
+          "Add route for template library (/templates)",
+          "Add route for chains (/chains)",
+          "Add route for performance (/performance)",
+          "Add route for mocks (/mocks)",
+          "Add route for import/export (/import-export)",
+          "Add route for auth config (/auth)",
+          "Add route for GraphQL (/graphql)",
+          "Add route for environments (/environments)"
+        ]
+      }
+    }
+  },
+  "cli_commands": {
+    "description": "New Typer CLI commands to add to apiclient/cli.py",
+    "command_groups": {
+      "environment_commands": {
+        "group_name": "Environment Management",
+        "commands": [
+          {
+            "name": "env-create",
+            "usage": "apiclient env-create <name>",
+            "options": [
+              "--description",
+              "--active (set as active)"
+            ],
+            "description": "Create new environment"
+          },
+          {
+            "name": "env-list",
+            "usage": "apiclient env-list",
+            "description": "List all environments"
+          },
+          {
+            "name": "env-set-var",
+            "usage": "apiclient env-set-var <env_name> <var_name> <value>",
+            "options": [
+              "--secret (encrypt value)"
+            ],
+            "description": "Add/update variable in environment"
+          },
+          {
+            "name": "env-active",
+            "usage": "apiclient env-active <env_name>",
+            "description": "Set active environment"
+          },
+          {
+            "name": "env-delete",
+            "usage": "apiclient env-delete <env_name>",
+            "description": "Delete environment"
+          }
+        ]
+      },
+      "collection_commands": {
+        "group_name": "Collection Management",
+        "commands": [
+          {
+            "name": "collection-create",
+            "usage": "apiclient collection-create <name>",
+            "options": [
+              "--description",
+              "--parent-id"
+            ],
+            "description": "Create new collection"
+          },
+          {
+            "name": "collection-list",
+            "usage": "apiclient collection-list",
+            "description": "List all collections with hierarchy"
+          },
+          {
+            "name": "collection-add-request",
+            "usage": "apiclient collection-add-request <collection_id> <request_id>",
+            "description": "Move request to collection"
+          },
+          {
+            "name": "collection-delete",
+            "usage": "apiclient collection-delete <collection_id>",
+            "description": "Delete collection"
+          }
+        ]
+      },
+      "template_commands": {
+        "group_name": "Template Management",
+        "commands": [
+          {
+            "name": "template-list",
+            "usage": "apiclient template-list",
+            "options": [
+              "--category",
+              "--search"
+            ],
+            "description": "List available templates"
+          },
+          {
+            "name": "template-create",
+            "usage": "apiclient template-create <name>",
+            "options": [
+              "--method",
+              "--url",
+              "--category",
+              "--from-request (create from existing)"
+            ],
+            "description": "Create new template"
+          },
+          {
+            "name": "template-apply",
+            "usage": "apiclient template-apply <template_id>",
+            "options": [
+              "--env",
+              "--var (key=value pairs)"
+            ],
+            "description": "Apply template as new request"
+          }
+        ]
+      },
+      "assertion_commands": {
+        "group_name": "Response Assertions",
+        "commands": [
+          {
+            "name": "assert-add",
+            "usage": "apiclient assert-add <request_id> <type>",
+            "options": [
+              "--operator",
+              "--expected"
+            ],
+            "description": "Add assertion to request"
+          },
+          {
+            "name": "assert-validate",
+            "usage": "apiclient assert-validate <request_id> <response_file>",
+            "description": "Validate response against assertions"
+          },
+          {
+            "name": "assert-list",
+            "usage": "apiclient assert-list <request_id>",
+            "description": "List assertions for request"
+          }
+        ]
+      },
+      "import_export_commands": {
+        "group_name": "Import/Export",
+        "commands": [
+          {
+            "name": "import-postman",
+            "usage": "apiclient import-postman <file_path>",
+            "description": "Import Postman collection"
+          },
+          {
+            "name": "import-insomnia",
+            "usage": "apiclient import-insomnia <file_path>",
+            "description": "Import Insomnia collection"
+          },
+          {
+            "name": "import-openapi",
+            "usage": "apiclient import-openapi <file_path>",
+            "description": "Import OpenAPI spec"
+          },
+          {
+            "name": "export-postman",
+            "usage": "apiclient export-postman <collection_id> <output_file>",
+            "description": "Export collection as Postman"
+          },
+          {
+            "name": "export-insomnia",
+            "usage": "apiclient export-insomnia <collection_id> <output_file>",
+            "description": "Export collection as Insomnia"
+          },
+          {
+            "name": "export-openapi",
+            "usage": "apiclient export-openapi <collection_id> <output_file>",
+            "description": "Export collection as OpenAPI"
+          }
+        ]
+      },
+      "chain_commands": {
+        "group_name": "Request Chains",
+        "commands": [
+          {
+            "name": "chain-create",
+            "usage": "apiclient chain-create <name>",
+            "options": [
+              "--description"
+            ],
+            "description": "Create request chain"
+          },
+          {
+            "name": "chain-add-request",
+            "usage": "apiclient chain-add-request <chain_id> <request_id>",
+            "options": [
+              "--delay",
+              "--map-vars"
+            ],
+            "description": "Add request to chain"
+          },
+          {
+            "name": "chain-execute",
+            "usage": "apiclient chain-execute <chain_id>",
+            "options": [
+              "--initial-vars",
+              "--save-results"
+            ],
+            "description": "Execute request chain"
+          },
+          {
+            "name": "chain-list",
+            "usage": "apiclient chain-list",
+            "description": "List all chains"
+          }
+        ]
+      },
+      "performance_commands": {
+        "group_name": "Performance Monitoring",
+        "commands": [
+          {
+            "name": "perf-metrics",
+            "usage": "apiclient perf-metrics <request_id>",
+            "options": [
+              "--limit",
+              "--days"
+            ],
+            "description": "Get response time metrics"
+          },
+          {
+            "name": "perf-load-test",
+            "usage": "apiclient perf-load-test <url>",
+            "options": [
+              "--method",
+              "--concurrency",
+              "--iterations",
+              "--headers",
+              "--body"
+            ],
+            "description": "Run load test on endpoint"
+          },
+          {
+            "name": "perf-analytics",
+            "usage": "apiclient perf-analytics <request_id>",
+            "options": [
+              "--chart (display chart)"
+            ],
+            "description": "Display performance trends"
+          }
+        ]
+      },
+      "auth_commands": {
+        "group_name": "Authentication",
+        "commands": [
+          {
+            "name": "auth-add-apikey",
+            "usage": "apiclient auth-add-apikey <name> <header> <key>",
+            "description": "Add API key auth"
+          },
+          {
+            "name": "auth-add-bearer",
+            "usage": "apiclient auth-add-bearer <name> <token>",
+            "description": "Add bearer token auth"
+          },
+          {
+            "name": "auth-add-basic",
+            "usage": "apiclient auth-add-basic <name> <username> <password>",
+            "description": "Add basic auth"
+          },
+          {
+            "name": "auth-add-oauth2",
+            "usage": "apiclient auth-add-oauth2 <name>",
+            "options": [
+              "--client-id",
+              "--client-secret",
+              "--token-url",
+              "--auth-url"
+            ],
+            "description": "Add OAuth2 configuration"
+          },
+          {
+            "name": "auth-list",
+            "usage": "apiclient auth-list",
+            "description": "List auth configurations"
+          },
+          {
+            "name": "auth-jwt-decode",
+            "usage": "apiclient auth-jwt-decode <token>",
+            "options": [
+              "--secret"
+            ],
+            "description": "Decode JWT token"
+          }
+        ]
+      },
+      "mock_commands": {
+        "group_name": "Mock Server",
+        "commands": [
+          {
+            "name": "mock-start",
+            "usage": "apiclient mock-start",
+            "options": [
+              "--port"
+            ],
+            "description": "Start mock server"
+          },
+          {
+            "name": "mock-add-route",
+            "usage": "apiclient mock-add-route <path> <method>",
+            "options": [
+              "--status",
+              "--body",
+              "--delay"
+            ],
+            "description": "Add mock endpoint"
+          },
+          {
+            "name": "mock-list-routes",
+            "usage": "apiclient mock-list-routes",
+            "description": "List mock routes"
+          },
+          {
+            "name": "mock-stop",
+            "usage": "apiclient mock-stop",
+            "description": "Stop mock server"
+          }
+        ]
+      },
+      "graphql_commands": {
+        "group_name": "GraphQL",
+        "commands": [
+          {
+            "name": "graphql-query",
+            "usage": "apiclient graphql-query <endpoint> <query_file>",
+            "options": [
+              "--variables",
+              "--operation"
+            ],
+            "description": "Execute GraphQL query"
+          },
+          {
+            "name": "graphql-introspect",
+            "usage": "apiclient graphql-introspect <endpoint>",
+            "description": "Introspect GraphQL schema"
+          },
+          {
+            "name": "graphql-save-query",
+            "usage": "apiclient graphql-save-query <name>",
+            "options": [
+              "--endpoint",
+              "--query-file"
+            ],
+            "description": "Save GraphQL query"
+          }
+        ]
+      }
+    }
+  },
+  "phased_implementation": {
+    "description": "Recommended phased rollout for maximum value and minimal conflicts",
+    "phases": [
+      {
+        "phase_number": 1,
+        "name": "Foundation & Core Features",
+        "duration_weeks": "6-7",
+        "focus": "Build core infrastructure for later features",
+        "features": [
+          {
+            "name": "Environment Variables",
+            "priority": 1,
+            "reasoning": "Foundation for all other features; enables variable substitution",
+            "tasks": [
+              "Create EnvironmentConfig model",
+              "Implement environment storage (JSON + file encryption)",
+              "Add environment endpoints",
+              "Implement {{VAR}} placeholder parsing",
+              "Add CLI env commands",
+              "Add EnvironmentManager component",
+              "Add environment switching in RequestBuilder"
+            ],
+            "estimated_story_points": 13
+          },
+          {
+            "name": "Request Collections/Folders",
+            "priority": 2,
+            "reasoning": "Critical for organization; enables hierarchical storage",
+            "tasks": [
+              "Refactor storage schema for collections",
+              "Create Collection model with nesting support",
+              "Implement collection endpoints (CRUD)",
+              "Add CollectionTree component",
+              "Implement drag-drop reorganization",
+              "Add collection CLI commands",
+              "Migrate existing requests to 'Unsorted' collection"
+            ],
+            "estimated_story_points": 15
+          },
+          {
+            "name": "Response Validation/Assertions",
+            "priority": 3,
+            "reasoning": "Core testing feature; needed for later automation",
+            "tasks": [
+              "Create Assertion model with multiple assertion types",
+              "Implement assertion validation logic",
+              "Add assertion endpoints",
+              "Create AssertionBuilder component",
+              "Add AssertionResults display",
+              "Integrate into ResponseViewer",
+              "Add CLI assertion commands"
+            ],
+            "estimated_story_points": 14
+          }
+        ],
+        "total_story_points": 42,
+        "dependencies": "None - greenfield implementation",
+        "success_criteria": [
+          "All 3 features fully functional in CLI and Web UI",
+          "No breaking changes to existing API",
+          "Storage migration successful",
+          "Unit tests for new models",
+          "E2E tests for main workflows"
+        ]
+      },
+      {
+        "phase_number": 2,
+        "name": "Advanced Features & Automation",
+        "duration_weeks": "8-9",
+        "focus": "Enable automation, testing, and data-driven workflows",
+        "features": [
+          {
+            "name": "Request Chaining",
+            "priority": 4,
+            "reasoning": "Enables workflow automation; builds on environment variables",
+            "tasks": [
+              "Create RequestChain model with variable mapping",
+              "Implement chain execution engine",
+              "Add chain endpoints",
+              "Create ChainBuilder component",
+              "Implement variable extraction from responses",
+              "Add conditional logic support",
+              "Add chain CLI commands",
+              "Add execution history tracking"
+            ],
+            "estimated_story_points": 18,
+            "depends_on": ["Environment Variables"]
+          },
+          {
+            "name": "Request Templates",
+            "priority": 5,
+            "reasoning": "Accelerates request creation; enhances productivity",
+            "tasks": [
+              "Create RequestTemplate model",
+              "Implement template storage and retrieval",
+              "Add template endpoints",
+              "Create TemplateLibrary component",
+              "Implement template application with variable substitution",
+              "Add pre-built templates for popular APIs",
+              "Add CLI template commands"
+            ],
+            "estimated_story_points": 12,
+            "depends_on": ["Environment Variables"]
+          },
+          {
+            "name": "Import/Export",
+            "priority": 6,
+            "reasoning": "Enables migration from other tools; critical for adoption",
+            "tasks": [
+              "Implement Postman collection parser",
+              "Implement Insomnia collection parser",
+              "Implement OpenAPI spec parser",
+              "Add import/export endpoints",
+              "Create ImportExportDialog component",
+              "Add format converters",
+              "Add CLI import/export commands",
+              "Handle schema version differences"
+            ],
+            "estimated_story_points": 16,
+            "depends_on": ["Request Collections"]
+          },
+          {
+            "name": "Performance Monitoring",
+            "priority": 7,
+            "reasoning": "Critical for identifying bottlenecks; enables SLA monitoring",
+            "tasks": [
+              "Create PerformanceMetric model",
+              "Implement response time tracking",
+              "Add performance endpoints",
+              "Implement load testing engine",
+              "Create PerformanceMonitor component",
+              "Add ResponseTimeChart with Recharts",
+              "Add load test dialog and results display",
+              "Add CLI performance commands",
+              "Implement performance analytics calculations"
+            ],
+            "estimated_story_points": 20,
+            "depends_on": ["Response Validation/Assertions"]
+          }
+        ],
+        "total_story_points": 66,
+        "dependencies": "Phase 1 completion required",
+        "success_criteria": [
+          "All 4 features fully functional",
+          "Performance benchmarks established",
+          "Load testing accurate within 5%",
+          "Import of sample Postman/Insomnia collections successful",
+          "Chain execution with variable passing working reliably"
+        ]
+      },
+      {
+        "phase_number": 3,
+        "name": "Advanced Tools & Specialized Features",
+        "duration_weeks": "8-10",
+        "focus": "Advanced use cases, specialized protocols, and operational tools",
+        "features": [
+          {
+            "name": "Authentication Helpers",
+            "priority": 8,
+            "reasoning": "Centralized auth management; reduces friction with secured APIs",
+            "tasks": [
+              "Create AuthenticationConfig model",
+              "Implement API key management with encryption",
+              "Implement OAuth2 flow with PKCE",
+              "Implement JWT token generation and validation",
+              "Implement JWT decode utility",
+              "Add auth endpoints (OAuth callback, JWT decode/generate)",
+              "Create AuthenticationPanel component",
+              "Create AuthTypeSelector component",
+              "Create OAuth2Flow component",
+              "Create JWTDecoder component",
+              "Integrate auth into request headers",
+              "Add CLI auth commands",
+              "Implement token refresh logic"
+            ],
+            "estimated_story_points": 22,
+            "depends_on": ["Environment Variables"]
+          },
+          {
+            "name": "Mock Server",
+            "priority": 9,
+            "reasoning": "Enable offline testing and API development; critical for TDD",
+            "tasks": [
+              "Create MockEndpoint model",
+              "Implement mock HTTP server (using Flask or FastAPI in subprocess)",
+              "Implement dynamic response generation",
+              "Add mock endpoints for CRUD operations",
+              "Create MockServerPanel component",
+              "Create MockRouteEditor component",
+              "Add route management (add/edit/delete)",
+              "Implement response delay simulation",
+              "Add CLI mock commands",
+              "Implement request-to-mock conversion",
+              "Add mock request history tracking"
+            ],
+            "estimated_story_points": 18,
+            "depends_on": ["None - can be independent"]
+          },
+          {
+            "name": "GraphQL Support",
+            "priority": 10,
+            "reasoning": "Support modern APIs; expand tool reach to GraphQL developers",
+            "tasks": [
+              "Create GraphQLQuery model",
+              "Implement GraphQL query execution",
+              "Implement schema introspection",
+              "Create GraphQLQueryBuilder component",
+              "Create GraphQLSchemaExplorer component",
+              "Create GraphQLVariables component",
+              "Create GraphQLResponseViewer component",
+              "Implement query syntax highlighting (with Monaco editor or CodeMirror)",
+              "Implement variable type validation",
+              "Add schema caching",
+              "Add CLI GraphQL commands",
+              "Implement error handling for GraphQL errors"
+            ],
+            "estimated_story_points": 19,
+            "depends_on": ["None - can be independent"]
+          }
+        ],
+        "total_story_points": 59,
+        "dependencies": "Phase 1 & 2 completion recommended (but some features can be parallel)",
+        "success_criteria": [
+          "All 3 features fully functional",
+          "OAuth2 flow working with real providers",
+          "Mock server reliable for load testing",
+          "GraphQL schema introspection working",
+          "Authentication tokens properly encrypted and managed"
+        ]
+      }
+    ],
+    "overall_timeline": {
+      "total_duration": "22-26 weeks",
+      "total_story_points": 167,
+      "team_recommendation": "2-3 developers (1 backend, 1 frontend, 1 full-stack lead)",
+      "risk_factors": [
+        "Storage migration complexity (Phase 1)",
+        "OAuth2 provider integration (Phase 3)",
+        "Performance testing accuracy (Phase 2)",
+        "GraphQL schema parsing edge cases (Phase 3)"
+      ]
+    }
+  },
+  "estimated_complexity": {
+    "by_feature": [
+      {
+        "feature": "Environment Variables",
+        "complexity": "medium",
+        "reasoning": "Simple storage model, but requires templating engine and encryption",
+        "effort_hours": "80-100"
+      },
+      {
+        "feature": "Request Collections/Folders",
+        "complexity": "high",
+        "reasoning": "Requires storage refactoring, tree component, and drag-drop UI",
+        "effort_hours": "120-150"
+      },
+      {
+        "feature": "Request Templates",
+        "complexity": "medium",
+        "reasoning": "Template storage and application logic straightforward, needs good UX",
+        "effort_hours": "90-120"
+      },
+      {
+        "feature": "Response Validation/Assertions",
+        "complexity": "high",
+        "reasoning": "Multiple assertion types, validation logic, and result display",
+        "effort_hours": "110-140"
+      },
+      {
+        "feature": "Import/Export",
+        "complexity": "high",
+        "reasoning": "Multiple format parsers, format conversion, schema mapping",
+        "effort_hours": "130-160"
+      },
+      {
+        "feature": "Request Chaining",
+        "complexity": "high",
+        "reasoning": "Execution engine, variable extraction, conditional logic",
+        "effort_hours": "140-170"
+      },
+      {
+        "feature": "Performance Monitoring",
+        "complexity": "high",
+        "reasoning": "Load testing engine, metrics collection, charting, analytics",
+        "effort_hours": "150-180"
+      },
+      {
+        "feature": "Authentication Helpers",
+        "complexity": "high",
+        "reasoning": "Multiple auth types, OAuth2 flow, encryption, token management",
+        "effort_hours": "160-190"
+      },
+      {
+        "feature": "Mock Server",
+        "complexity": "medium-high",
+        "reasoning": "HTTP server implementation, route management, dynamic responses",
+        "effort_hours": "130-160"
+      },
+      {
+        "feature": "GraphQL Support",
+        "complexity": "high",
+        "reasoning": "Schema introspection, query validation, specialized UI components",
+        "effort_hours": "140-170"
+      }
+    ],
+    "total_effort": {
+      "low_estimate": "1180 hours",
+      "high_estimate": "1480 hours",
+      "average": "1330 hours",
+      "team_velocity": "3 developers × 40 hours/week = 120 story points/week",
+      "estimated_calendar_weeks": "22-26 weeks"
+    }
+  },
+  "integration_dependencies": {
+    "new_backend_dependencies": [
+      {
+        "package": "python-jose",
+        "version": ">=3.3.0",
+        "purpose": "JWT token handling"
+      },
+      {
+        "package": "cryptography",
+        "version": ">=40.0.0",
+        "purpose": "Encryption for sensitive data"
+      },
+      {
+        "package": "oauthlib",
+        "version": ">=3.2.0",
+        "purpose": "OAuth2 flow implementation"
+      },
+      {
+        "package": "graphql-core",
+        "version": ">=3.2.0",
+        "purpose": "GraphQL query validation"
+      },
+      {
+        "package": "httpx",
+        "version": ">=0.23.0",
+        "purpose": "Async HTTP client for load testing"
+      },
+      {
+        "package": "locust",
+        "version": ">=2.0.0",
+        "purpose": "Load testing framework (optional - can build custom)"
+      }
+    ],
+    "new_frontend_dependencies": [
+      {
+        "package": "recharts",
+        "version": ">=2.8.0",
+        "purpose": "Performance metrics charting"
+      },
+      {
+        "package": "@monaco-editor/react",
+        "version": ">=4.4.0",
+        "purpose": "GraphQL and JSON query editing"
+      },
+      {
+        "package": "react-tree-component",
+        "version": ">=1.0.0 (or similar)",
+        "purpose": "Collection hierarchy tree view"
+      },
+      {
+        "package": "react-dnd",
+        "version": ">=16.0.0",
+        "purpose": "Drag-drop for collection/chain reorganization"
+      },
+      {
+        "package": "react-query",
+        "version": ">=3.39.0",
+        "purpose": "Data fetching and caching (optional but recommended)"
+      }
+    ],
+    "cli_dependencies": [
+      {
+        "package": "cryptography",
+        "version": ">=40.0.0",
+        "purpose": "Encrypt environment variables"
+      },
+      {
+        "package": "python-jose",
+        "version": ">=3.3.0",
+        "purpose": "JWT token handling"
+      },
+      {
+        "package": "graphql-core",
+        "version": ">=3.2.0",
+        "purpose": "GraphQL query validation"
+      }
+    ]
+  },
+  "implementation_notes": {
+    "storage_considerations": [
+      "Maintain backward compatibility with existing ~/.apiclient/requests.json",
+      "Implement migration tool to convert flat structure to hierarchical",
+      "Consider using SQLite for future scalability (optional Phase 4+)",
+      "Encrypt sensitive data (API keys, OAuth tokens, JWT secrets) at rest",
+      "Implement file locking for concurrent access"
+    ],
+    "security_considerations": [
+      "Never log sensitive data (API keys, tokens, passwords)",
+      "Use environment variables for secrets in config files",
+      "Implement CORS properly in backend",
+      "Validate all user inputs server-side",
+      "Implement rate limiting on mock server",
+      "Use secure random for OAuth state parameter",
+      "Implement token expiration and refresh logic"
+    ],
+    "performance_considerations": [
+      "Cache GraphQL schemas after introspection",
+      "Implement pagination for large collections",
+      "Use async/await for load testing to handle many concurrent requests",
+      "Implement connection pooling for HTTP requests",
+      "Consider WebSocket for real-time chain execution status",
+      "Implement metrics database with retention policy"
+    ],
+    "testing_strategy": [
+      "Unit tests for all models and utility functions",
+      "Integration tests for API endpoints",
+      "E2E tests for main workflows (using Playwright)",
+      "Load test the mock server itself",
+      "Test OAuth2 with real provider (sandbox environment)",
+      "Test GraphQL introspection with real GraphQL APIs"
+    ],
+    "rollout_strategy": [
+      "Feature flags for early features in production",
+      "Canary deployment for backend changes",
+      "User feedback loop after each phase",
+      "Documentation updates with each release",
+      "Migration guide for Postman/Insomnia users"
+    ]
+  }
+}

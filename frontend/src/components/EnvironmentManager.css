@@ -1,0 +1,228 @@
+.environment-manager {
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid var(--border-color);
+}
+
+.env-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.env-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.btn-add-env {
+  padding: 6px 12px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-add-env:hover {
+  background: #0056b3;
+}
+
+.env-form {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 15px;
+}
+
+.env-form input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.env-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.variables-section {
+  margin-bottom: 15px;
+}
+
+.variables-section h4 {
+  margin: 0 0 10px 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.variable-input {
+  display: grid;
+  grid-template-columns: 1fr 1fr 80px;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.variable-input input {
+  margin-bottom: 0;
+}
+
+.variable-input button {
+  padding: 8px;
+  background: var(--success);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.variable-input button:hover {
+  background: #218838;
+}
+
+.variable-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr 40px;
+  gap: 8px;
+  background: var(--bg-secondary);
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.var-key {
+  color: var(--accent);
+  font-weight: 500;
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.var-value {
+  color: var(--text-secondary);
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.variable-item button {
+  padding: 4px 8px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.variable-item button:hover {
+  background: #c82333;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-save,
+.btn-cancel {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.btn-save {
+  background: var(--success);
+  color: white;
+}
+
+.btn-save:hover {
+  background: #218838;
+}
+
+.btn-cancel {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.btn-cancel:hover {
+  background: #ccc;
+}
+
+.environments-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.env-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.env-item:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+}
+
+.env-item.selected {
+  border-color: var(--accent);
+  background: rgba(0, 123, 255, 0.05);
+}
+
+.env-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.env-name {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.var-count {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.btn-delete {
+  padding: 4px 8px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: background 0.2s;
+}
+
+.btn-delete:hover {
+  background: #c82333;
+}
